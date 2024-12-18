@@ -29,7 +29,7 @@ app.post('/message', async (req, res) => {
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt || 'Write a friendly welcome message for new user' }],
+      messages: [{ role: 'user', content: 'Write a warm one-sentence welcome message for a new user registering to Elysian Softech, highlighting our AI solutions.' }],
     });
     res.json({ message: response.choices[0].message.content });
   } catch (error) {
