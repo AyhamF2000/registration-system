@@ -1,0 +1,27 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Environment Variables
+.env
+
+# Virtual Environments
+venv/
+.env/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Archive files
+*.zip
+*.tar.gz
+
+# IDE Files
+.vscode/
+.idea/
