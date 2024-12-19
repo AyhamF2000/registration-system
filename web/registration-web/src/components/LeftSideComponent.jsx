@@ -1,7 +1,18 @@
-// src/components/AuthLeftSide.jsx
 import React from "react";
 
-const AuthLeftSide = () => {
+/**
+ * LeftSideComponent
+ * 
+ * This component represents the left panel of the login page. 
+ * It includes branding elements such as a logo, an illustration, 
+ * and a welcoming message to enhance the user experience.
+ *
+ * Key Features:
+ * - Displays the logo and illustration.
+ * - Provides a welcoming message and tagline.
+ * - Styled with a blue background and centered content.
+ */
+const LeftSideComponent = () => {
   return (
     <div
       style={{
@@ -43,4 +54,4 @@ const AuthLeftSide = () => {
   );
 };
 
-export default AuthLeftSide;
+export default LeftSideComponent;

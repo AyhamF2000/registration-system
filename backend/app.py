@@ -5,12 +5,15 @@ import bcrypt
 from password_strength import PasswordPolicy
 from dotenv import load_dotenv
 import os
-import requests  # For making HTTP requests
+import requests  
+from flask_cors import CORS  
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(app)
 
 # MongoDB connection string
 uri = os.getenv("MONGO_URI")
@@ -96,7 +99,9 @@ def login():
     if user:
         # Verify the provided password
         if bcrypt.checkpw(data['password'].encode('utf-8'), user['password']):
-            return jsonify({"success": True, "message": "Login successful."})
+            return jsonify({"success": True, "message": "Login successful."}), 200
+        else:
+            return jsonify({"success": False, "message": "Invalid email or password."}), 401  
     
     return jsonify({"success": False, "message": "Invalid email or password."}), 401
 
