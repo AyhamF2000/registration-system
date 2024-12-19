@@ -1,46 +1,43 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import ToastUtils from "../utils/ToastUtils"; // Import ToastUtils
-import { register } from "../services/UserService"; // Backend registration API service
+import { changePassword } from "../services/UserService";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
-const RegisterPage = () => {
-  const [email, setEmail] = useState(""); // Email input value
-  const [password, setPassword] = useState(""); // Password input value
-  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for button
-  const navigate = useNavigate();
+const ForgotPasswordPage = () => {
+  const [email, setEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate(); // Initialize navigate
 
-  // Form validation
   const validateInputs = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !password) {
+    if (!email || !currentPassword || !newPassword) {
       ToastUtils.error("All fields are required!");
       return false;
     }
-    if (!emailRegex.test(email)) {
-      ToastUtils.error("Invalid email format!");
-      return false;
-    }
-    if (password.length < 8) {
-      ToastUtils.error("Password must be at least 8 characters long!");
+    if (newPassword.length < 8) {
+      ToastUtils.error("New password must be at least 8 characters long!");
       return false;
     }
     return true;
   };
 
-  // Handle form submission
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateInputs()) return;
 
     setIsSubmitting(true);
     try {
-      const response = await register(email, password); // Call the backend API
+      const response = await changePassword(email, currentPassword, newPassword); // Call the service
       if (response.success) {
-        ToastUtils.success("Registration successful!");
-        navigate("/welcome", { state: { message: response.message } }); // Pass welcome message to WelcomePage
+        ToastUtils.success(response.message);
+        setEmail("");
+        setCurrentPassword("");
+        setNewPassword("");
+        navigate("/");
       } else {
-        ToastUtils.error(response.message || "Registration failed!");
+        ToastUtils.error(response.message || "Password change failed!");
       }
     } catch (err) {
       ToastUtils.error(err.message || "Something went wrong!");
@@ -57,27 +54,30 @@ const RegisterPage = () => {
         alignItems: "center",
         height: "100vh", // Full viewport height
         width: "100vw", // Full viewport width
-        height: "100vh",
         backgroundColor: "#6A6FDD",
       }}
     >
       <form
-        onSubmit={handleRegister}
+        onSubmit={handleSubmit}
         style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           width: "90%",
-          maxWidth: "450px",
-          padding: "40px",
+          maxWidth: "400px",
+          padding: "20px",
           backgroundColor: "#fff",
-          borderRadius: "20px",
+          borderRadius: "10px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          boxSizing: "border-box",
         }}
       >
         <h2 style={{ textAlign: "center", marginBottom: "20px", color: "#3B3DBF" }}>
-          Register
+          Change Password
         </h2>
 
         {/* Email Input */}
-        <div style={{ marginBottom: "15px" }}>
+        <div style={{ marginBottom: "15px", width: "100%" }}>
           <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
             Email
           </label>
@@ -91,25 +91,47 @@ const RegisterPage = () => {
               padding: "10px",
               border: "1px solid #ccc",
               borderRadius: "5px",
+              boxSizing: "border-box",
             }}
           />
         </div>
 
-        {/* Password Input */}
-        <div style={{ marginBottom: "15px" }}>
+        {/* Current Password Input */}
+        <div style={{ marginBottom: "15px", width: "100%" }}>
           <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
-            Password
+            Current Password
           </label>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Enter your current password"
             style={{
               width: "100%",
               padding: "10px",
               border: "1px solid #ccc",
               borderRadius: "5px",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* New Password Input */}
+        <div style={{ marginBottom: "15px", width: "100%" }}>
+          <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
+            New Password
+          </label>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="Enter your new password"
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+              boxSizing: "border-box",
             }}
           />
         </div>
@@ -129,11 +151,11 @@ const RegisterPage = () => {
             transition: "background-color 0.3s ease",
           }}
         >
-          {isSubmitting ? "Registering..." : "Register"}
+          {isSubmitting ? "Changing Password..." : "Change Password"}
         </button>
       </form>
     </div>
   );
 };
 
-export default RegisterPage;
+export default ForgotPasswordPage;

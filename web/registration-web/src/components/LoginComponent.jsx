@@ -1,27 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import ToastUtils from "../utils/ToastUtils"; // Import ToastUtils
 import { login } from "../services/UserService"; // Import login function from the service
-import { AiOutlineMail, AiOutlineLock, AiFillEye, AiFillEyeInvisible } from "react-icons/ai"; // Import icons from react-icons
+import { AiOutlineMail, AiOutlineLock, AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
-/**
- * LoginComponent
- * 
- * This component provides a login form with:
- * - Email and password inputs.
- * - Password visibility toggle functionality.
- * - Login integration with backend services.
- * - Toast notifications for success and error feedback.
- * 
- * Features:
- * - Input focus and hover effects for better user experience.
- * - Form validation to ensure all fields are filled before submission.
- */
 const LoginComponent = () => {
-  const [email, setEmail] = useState(""); // Email input value
-  const [password, setPassword] = useState(""); // Password input value
-  const [showPassword, setShowPassword] = useState(false); // Toggle visibility of password
-  const navigate = useNavigate(); // For navigation after successful login
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -31,9 +18,7 @@ const LoginComponent = () => {
     e.preventDefault();
 
     if (!email || !password) {
-      toast.error("Please fill in both email and password fields.", {
-        position: "top-right",
-      });
+      ToastUtils.error("Please fill in both email and password fields.");
       return;
     }
 
@@ -41,17 +26,13 @@ const LoginComponent = () => {
       const response = await login(email, password);
 
       if (response.success) {
-        toast.success(response.message, { position: "top-right" });
+        ToastUtils.success(response.message);
         navigate("/welcome");
       } else {
-        toast.error(response.message || "Login failed. Please try again.", {
-          position: "top-right",
-        });
+        ToastUtils.error(response.message || "Login failed. Please try again.");
       }
     } catch (err) {
-      toast.error(err.message || "Something went wrong.", {
-        position: "top-right",
-      });
+      ToastUtils.error(err.message || "Something went wrong.");
     }
   };
 
@@ -92,12 +73,7 @@ const LoginComponent = () => {
             padding: "10px 40px 10px 40px",
             border: "1px solid #ccc",
             borderRadius: "5px",
-            transition: "all 0.3s ease", // Smooth hover effect
           }}
-          onMouseEnter={(e) => (e.target.style.borderColor = "#3B3DBF")}
-          onMouseLeave={(e) => (e.target.style.borderColor = "#ccc")}
-          onFocus={(e) => (e.target.style.boxShadow = "0 0 5px rgba(59, 61, 191, 0.5)")}
-          onBlur={(e) => (e.target.style.boxShadow = "none")}
         />
       </div>
 
@@ -128,12 +104,7 @@ const LoginComponent = () => {
             padding: "10px 40px 10px 40px",
             border: "1px solid #ccc",
             borderRadius: "5px",
-            transition: "all 0.3s ease", // Smooth hover effect
           }}
-          onMouseEnter={(e) => (e.target.style.borderColor = "#3B3DBF")}
-          onMouseLeave={(e) => (e.target.style.borderColor = "#ccc")}
-          onFocus={(e) => (e.target.style.boxShadow = "0 0 5px rgba(59, 61, 191, 0.5)")}
-          onBlur={(e) => (e.target.style.boxShadow = "none")}
         />
         <span
           onClick={togglePasswordVisibility}
@@ -151,16 +122,7 @@ const LoginComponent = () => {
 
       {/* Forgot Password */}
       <div style={{ textAlign: "right", marginBottom: "20px" }}>
-        <Link
-          to="/forgot-password"
-          style={{
-            color: "#3B3DBF",
-            textDecoration: "none",
-            transition: "color 0.3s ease", // Smooth hover effect
-          }}
-          onMouseEnter={(e) => (e.target.style.color = "#6b6b6b")}
-          onMouseLeave={(e) => (e.target.style.color = "#3B3DBF")}
-        >
+        <Link to="/forgot-password" style={{ color: "#3B3DBF", textDecoration: "none" }}>
           Forgot password?
         </Link>
       </div>
@@ -176,13 +138,7 @@ const LoginComponent = () => {
           border: "none",
           borderRadius: "5px",
           cursor: "pointer",
-          borderRadius: "25px",
-          transition: "all 0.3s ease", // Smooth hover effect
         }}
-        onMouseEnter={(e) => (e.target.style.backgroundColor = "#2C2F99")}
-        onMouseLeave={(e) => (e.target.style.backgroundColor = "#3B3DBF")}
-        onMouseDown={(e) => (e.target.style.transform = "scale(0.98)")}
-        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
       >
         Log in
       </button>

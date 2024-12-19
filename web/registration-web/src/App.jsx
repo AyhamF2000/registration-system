@@ -1,17 +1,15 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import WelcomePage from "./pages/WelcomePage";
+import AppRoutes from "./routes/AppRoutes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   return (
-    <Router>
-      {/* Configure the ToastContainer */}
+    <>
+      {/* ToastContainer for global toast notifications */}
       <ToastContainer
         position="top-right"
-        autoClose={3000} // Close after 3 seconds
+        autoClose={3000} // Auto-close after 3 seconds
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -19,13 +17,12 @@ const App = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light" // You can use 'dark' for a dark theme
+        theme="light" // Use 'dark' for a dark theme
       />
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/welcome" element={<WelcomePage />} />
-      </Routes>
-    </Router>
+
+      {/* App routes */}
+      <AppRoutes />
+    </>
   );
 };
 

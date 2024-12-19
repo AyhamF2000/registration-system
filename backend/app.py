@@ -105,5 +105,40 @@ def login():
     
     return jsonify({"success": False, "message": "Invalid email or password."}), 401
 
+@app.route('/change-password', methods=['POST'])
+def change_password():
+    """Endpoint to change the user's password."""
+    data = request.json
+
+    # Validate input data
+    email = data.get('email')
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    if not email or not current_password or not new_password:
+        return jsonify({"success": False, "message": "Email, current password, and new password are required."}), 400
+
+    # Retrieve user by email
+    user = db.users.find_one({"email": email})
+    if not user:
+        return jsonify({"success": False, "message": "User not found."}), 404
+
+    # Verify the current password
+    if not bcrypt.checkpw(current_password.encode('utf-8'), user['password']):
+        return jsonify({"success": False, "message": "Current password is incorrect."}), 401
+
+    # Validate the new password against the password policy
+    issues = policy.test(new_password)
+    if issues:
+        return jsonify({"success": False, "message": "New password does not meet complexity requirements: " + ", ".join(str(issue) for issue in issues)}), 400
+
+    # Hash the new password
+    hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+
+    # Update the password in the database
+    db.users.update_one({"email": email}, {"$set": {"password": hashed_new_password}})
+
+    return jsonify({"success": True, "message": "Password changed successfully."}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
