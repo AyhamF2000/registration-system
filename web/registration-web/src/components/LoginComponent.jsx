@@ -1,145 +1,122 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import ToastUtils from "../utils/ToastUtils"; // Import ToastUtils
-import { login } from "../services/UserService"; // Import login function from the service
+import React from "react";
 import { AiOutlineMail, AiOutlineLock, AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
-const LoginComponent = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-
-    if (!email || !password) {
-      ToastUtils.error("Please fill in both email and password fields.");
-      return;
-    }
-
-    try {
-      const response = await login(email, password);
-
-      if (response.success) {
-        ToastUtils.success(response.message);
-        navigate("/welcome");
-      } else {
-        ToastUtils.error(response.message || "Login failed. Please try again.");
-      }
-    } catch (err) {
-      ToastUtils.error(err.message || "Something went wrong.");
-    }
+/**
+ * LoginComponent
+ * A reusable component for login input fields and the form UI.
+ * Props:
+ * - email: email value
+ * - setEmail: function to update email value
+ * - password: password value
+ * - setPassword: function to update password value
+ * - showPassword: boolean to toggle password visibility
+ * - togglePasswordVisibility: function to toggle password visibility
+ * - handleSubmit: function to handle form submission
+ */
+const LoginComponent = ({
+  email,
+  setEmail,
+  password,
+  setPassword,
+  showPassword,
+  togglePasswordVisibility,
+  handleSubmit,
+}) => {
+  const styles = {
+    form: {
+      display: "flex",
+      flexDirection: "column",
+      width: "100%",
+      maxWidth: "350px",
+    },
+    inputContainer: {
+      position: "relative",
+      marginBottom: "15px",
+      display: "flex",
+      alignItems: "center",
+    },
+    inputIcon: {
+      position: "absolute",
+      left: "10px",
+      color: "#6b6b6b",
+      fontSize: "18px",
+    },
+    inputField: {
+      width: "100%",
+      padding: "10px 40px 10px 40px",
+      border: "1px solid #ccc",
+      borderRadius: "5px",
+      fontSize: "14px",
+    },
+    passwordToggle: {
+      position: "absolute",
+      right: "10px",
+      color: "#6b6b6b",
+      fontSize: "18px",
+      cursor: "pointer",
+    },
+    forgotPassword: {
+      textAlign: "right",
+      marginBottom: "20px",
+    },
+    forgotPasswordLink: {
+      color: "#3b3dbf",
+      textDecoration: "none",
+    },
+    submitButton: {
+      width: "100%",
+      padding: "10px",
+      backgroundColor: "#3b3dbf",
+      color: "#fff",
+      border: "none",
+      borderRadius: "25px",
+      cursor: "pointer",
+      fontSize: "16px",
+      fontWeight: "bold",
+    },
+    submitButtonHover: {
+      backgroundColor: "#2a2a9f",
+    },
   };
 
   return (
-    <form
-      onSubmit={handleLogin}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        maxWidth: "350px",
-      }}
-    >
+    <form onSubmit={handleSubmit} style={styles.form}>
       {/* Email Input */}
-      <div
-        style={{
-          marginBottom: "15px",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <AiOutlineMail
-          style={{
-            position: "absolute",
-            left: "10px",
-            color: "#6b6b6b",
-            fontSize: "18px",
-          }}
-        />
+      <div style={styles.inputContainer}>
+        <AiOutlineMail style={styles.inputIcon} />
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 40px 10px 40px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
+          style={styles.inputField}
         />
       </div>
 
       {/* Password Input */}
-      <div
-        style={{
-          marginBottom: "15px",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <AiOutlineLock
-          style={{
-            position: "absolute",
-            left: "10px",
-            color: "#6b6b6b",
-            fontSize: "18px",
-          }}
-        />
+      <div style={styles.inputContainer}>
+        <AiOutlineLock style={styles.inputIcon} />
         <input
           type={showPassword ? "text" : "password"}
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 40px 10px 40px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
+          style={styles.inputField}
         />
-        <span
-          onClick={togglePasswordVisibility}
-          style={{
-            position: "absolute",
-            right: "10px",
-            color: "#6b6b6b",
-            fontSize: "18px",
-            cursor: "pointer",
-          }}
-        >
+        <span style={styles.passwordToggle} onClick={togglePasswordVisibility}>
           {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
         </span>
       </div>
 
       {/* Forgot Password */}
-      <div style={{ textAlign: "right", marginBottom: "20px" }}>
-        <Link to="/forgot-password" style={{ color: "#3B3DBF", textDecoration: "none" }}>
+      <div style={styles.forgotPassword}>
+        <a href="/forgot-password" style={styles.forgotPasswordLink}>
           Forgot password?
-        </Link>
+        </a>
       </div>
 
       {/* Submit Button */}
-      <button
-        type="submit"
-        style={{
-          width: "100%",
-          padding: "10px",
-          backgroundColor: "#3B3DBF",
-          color: "#fff",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
+      <button type="submit" style={styles.submitButton}>
         Log in
       </button>
     </form>

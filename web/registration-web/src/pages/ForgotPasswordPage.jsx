@@ -1,15 +1,35 @@
 import React, { useState } from "react";
-import ToastUtils from "../utils/ToastUtils"; // Import ToastUtils
-import { changePassword } from "../services/UserService";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import ToastUtils from "../utils/ToastUtils"; // Utility for toast notifications
+import { changePassword } from "../services/UserService"; // Backend service for password change
+import { useNavigate } from "react-router-dom"; // Hook for navigation
 
+/**
+ * ForgotPasswordPage
+ * 
+ * A page that allows users to update their password by providing:
+ * - Email address
+ * - Current password
+ * - New password
+ * 
+ * Features:
+ * - Validates inputs to ensure required fields are filled and meet password length requirements.
+ * - Provides visual feedback using toast notifications for success or error scenarios.
+ * - Disables the submit button while processing.
+ */
 const ForgotPasswordPage = () => {
+  // State variables for form inputs
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submit button
+  const navigate = useNavigate(); // React Router hook for navigation
 
+  /**
+   * Validates the user inputs for the form.
+   * Ensures all fields are filled and the new password meets length requirements.
+   * 
+   * @returns {boolean} Whether the inputs are valid.
+   */
   const validateInputs = () => {
     if (!email || !currentPassword || !newPassword) {
       ToastUtils.error("All fields are required!");
@@ -22,27 +42,46 @@ const ForgotPasswordPage = () => {
     return true;
   };
 
+  /**
+   * Handles form submission to change the user's password.
+   * - Validates the form inputs.
+   * - Calls the backend service to process the password change.
+   * - Displays feedback to the user via toast notifications.
+   * - Navigates back to the home page on success.
+   * 
+   * @param {Event} e - The form submission event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate inputs before proceeding
     if (!validateInputs()) return;
 
-    setIsSubmitting(true);
+    setIsSubmitting(true); // Disable the button during processing
     try {
-      const response = await changePassword(email, currentPassword, newPassword); // Call the service
+      // API call to change password
+      const response = await changePassword(email, currentPassword, newPassword);
+
       if (response.success) {
+        // Success notification
         ToastUtils.success(response.message);
+
+        // Reset form fields
         setEmail("");
         setCurrentPassword("");
         setNewPassword("");
+
+        // Navigate to the login page
         navigate("/");
       } else {
+        // Error notification from the server response
         ToastUtils.error(response.message || "Password change failed!");
       }
     } catch (err) {
+      // Network or unexpected error notification
       ToastUtils.error(err.message || "Something went wrong!");
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Re-enable the submit button
     }
   };
 
@@ -52,11 +91,12 @@ const ForgotPasswordPage = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh", // Full viewport height
-        width: "100vw", // Full viewport width
-        backgroundColor: "#6A6FDD",
+        height: "100vh", // Full screen height
+        width: "100vw",  // Full screen width
+        backgroundColor: "#6A6FDD", // Background color of the page
       }}
     >
+      {/* Password change form */}
       <form
         onSubmit={handleSubmit}
         style={{
@@ -66,17 +106,18 @@ const ForgotPasswordPage = () => {
           width: "90%",
           maxWidth: "400px",
           padding: "20px",
-          backgroundColor: "#fff",
-          borderRadius: "10px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+          backgroundColor: "#fff", // White card-like background
+          borderRadius: "10px", // Rounded corners
+          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow for depth
           boxSizing: "border-box",
         }}
       >
+        {/* Page title */}
         <h2 style={{ textAlign: "center", marginBottom: "20px", color: "#3B3DBF" }}>
           Change Password
         </h2>
 
-        {/* Email Input */}
+        {/* Email input field */}
         <div style={{ marginBottom: "15px", width: "100%" }}>
           <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
             Email
@@ -96,7 +137,7 @@ const ForgotPasswordPage = () => {
           />
         </div>
 
-        {/* Current Password Input */}
+        {/* Current password input field */}
         <div style={{ marginBottom: "15px", width: "100%" }}>
           <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
             Current Password
@@ -116,7 +157,7 @@ const ForgotPasswordPage = () => {
           />
         </div>
 
-        {/* New Password Input */}
+        {/* New password input field */}
         <div style={{ marginBottom: "15px", width: "100%" }}>
           <label style={{ display: "block", marginBottom: "5px", color: "#6b6b6b" }}>
             New Password
@@ -136,19 +177,19 @@ const ForgotPasswordPage = () => {
           />
         </div>
 
-        {/* Submit Button */}
+        {/* Submit button */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting} // Disable button while submitting
           style={{
             width: "100%",
             padding: "10px",
-            backgroundColor: isSubmitting ? "#ccc" : "#3B3DBF",
+            backgroundColor: isSubmitting ? "#ccc" : "#3B3DBF", // Dynamic background color
             color: "#fff",
             border: "none",
             borderRadius: "5px",
-            cursor: isSubmitting ? "not-allowed" : "pointer",
-            transition: "background-color 0.3s ease",
+            cursor: isSubmitting ? "not-allowed" : "pointer", // Disable pointer events when submitting
+            transition: "background-color 0.3s ease", // Smooth hover effect
           }}
         >
           {isSubmitting ? "Changing Password..." : "Change Password"}

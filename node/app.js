@@ -26,16 +26,21 @@ app.use(bodyParser.json());
 app.post('/message', async (req, res) => {
   const { prompt } = req.body;
 
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required' }); // Validate input
+  }
+
   try {
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: 'Write a warm one-sentence welcome message for a new user registering to Elysian Softech, highlighting our AI solutions.' }],
+      messages: [{ role: 'user', content: prompt }], // Use the prompt from the request
     });
     res.json({ message: response.choices[0].message.content });
   } catch (error) {
-    res.status(500).json({ error: error.message }); // Handle API errors gracefully
+    res.status(500).json({ error: error.message }); // Handle errors gracefully
   }
 });
+
 
 /**
  * Endpoint: /completion

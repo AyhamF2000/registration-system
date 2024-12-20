@@ -1,5 +1,6 @@
 import React from "react";
 import { FaGoogle, FaFacebook } from "react-icons/fa"; // Import social icons from react-icons
+import { getGoogleLoginUrl, getFacebookLoginUrl } from "../services/UserService";
 
 /**
  * SocialButtonsComponent
@@ -14,6 +15,16 @@ import { FaGoogle, FaFacebook } from "react-icons/fa"; // Import social icons fr
  * - Flexible design to integrate seamlessly into authentication forms.
  */
 const SocialButtonsComponent = () => {
+  const handleGoogleLogin = () => {
+    const googleLoginUrl = getGoogleLoginUrl();
+    window.location.href = googleLoginUrl;
+  };
+
+  const handleFacebookLogin = () => {
+    const facebookLoginUrl = getFacebookLoginUrl();
+    window.location.href = facebookLoginUrl;
+  };
+
   return (
     <div
       style={{
@@ -26,6 +37,7 @@ const SocialButtonsComponent = () => {
     >
       {/* Google Button */}
       <button
+        onClick={handleGoogleLogin}
         style={{
           flex: 1,
           display: "flex",
@@ -53,12 +65,13 @@ const SocialButtonsComponent = () => {
         onMouseDown={(e) => (e.target.style.transform = "scale(0.98)")} // Scale down on click
         onMouseUp={(e) => (e.target.style.transform = "scale(1)")} // Scale back to normal
       >
-        <FaGoogle size={18} /> {/* Google Icon with its default color */}
+        <FaGoogle size={18} /> {/* Google Icon */}
         Google
       </button>
 
       {/* Facebook Button */}
       <button
+        onClick={handleFacebookLogin}
         style={{
           flex: 1,
           display: "flex",
@@ -86,7 +99,7 @@ const SocialButtonsComponent = () => {
         onMouseDown={(e) => (e.target.style.transform = "scale(0.98)")} // Scale down on click
         onMouseUp={(e) => (e.target.style.transform = "scale(1)")} // Scale back to normal
       >
-        <FaFacebook size={18} /> {/* Facebook Icon with its default color */}
+        <FaFacebook size={18} /> {/* Facebook Icon */}
         Facebook
       </button>
     </div>
