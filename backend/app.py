@@ -11,6 +11,7 @@ from flask_cors import CORS
 from bson import ObjectId
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import httpx
 
 # Load environment variables from .env file
 load_dotenv()
@@ -103,25 +104,27 @@ def find_or_create_user(email, name, source):
         source (str): The source of registration (e.g., Google, Facebook).
 
     Returns:
-        str: Message indicating whether the user was registered or logged in.
+        tuple: A message and a boolean indicating if the user is new.
     """
-    user = db.users.find_one({"email": email})
+    source = source.lower()  # Ensure consistency in source
+    user = db.users.find_one({"email": email, "source": source})  # Query using the standardized source
     if not user:
         user_data = {
             "_id": str(ObjectId()),
             "email": email,
             "name": name,
-            "source": source,
-            "created_at": datetime.datetime.utcnow()
+            "source": source,  # Save the standardized source
+            "created_at": datetime.datetime.now()
         }
         db.users.insert_one(user_data)
-        return "User registered successfully."
-    return "User logged in successfully."
+        return "User registered successfully.", True  # User is new
+    return "User logged in successfully.", False  # User already exists
+
 
 
 @app.route('/register', methods=['POST'])
 @limiter.limit("5 per minute")
-def register():
+async def register():
     """
     Registers a new user.
 
@@ -132,7 +135,7 @@ def register():
     if not is_valid:
         return jsonify({"success": False, "message": message}), 400
 
-    if db.users.find_one({"email": data['email']}):
+    if db.users.find_one({"email": data['email'], "source": "App"}):
         return jsonify({"success": False, "message": "Email already registered."}), 409
 
     hashed_password = hash_password(data['password'])
@@ -142,11 +145,12 @@ def register():
         "name": data.get("name", "User"),
         "source": "App",
         "password": hashed_password,
-        "created_at": datetime.datetime.utcnow()
+        "created_at": datetime.datetime.now()
     }
     db.users.insert_one(user_data)
 
-    welcome_message = call_node_server(f"Create a short friendly welcome message for {user_data['name']} introducing Elysian Softech as an innovative tech company.")
+    prompt =f"Write a friendly one-sentence welcome message for {user_data['name']} introducing Elysian Softech (https://elysian-softech.com/)."
+    welcome_message = await call_node_server(prompt)
 
     return jsonify({
         "success": True,
@@ -159,7 +163,7 @@ def register():
 
 @app.route('/login', methods=['POST'])
 @limiter.limit("10 per minute")
-def login():
+async def login():
     """
     Authenticates a user.
 
@@ -169,15 +173,18 @@ def login():
     if not data.get('email') or not data.get('password'):
         return jsonify({"success": False, "message": "Email and password are required."}), 400
 
-    user = db.users.find_one({"email": data['email']})
+    user = db.users.find_one({"email": data['email'],"source": "App"})
     if user and verify_password(data['password'], user['password']):
+
+        prompt =f"Say hi to {user['name']} and share a random programming fact."
+        welcome_message = await call_node_server(prompt)
+
         return jsonify({
             "success": True,
             "message": "Login successful.",
-            "data": {
-                "name": user.get("name"),
-                "email": user.get("email"),
-            }
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "welcome_message": welcome_message
         }), 200
 
     return jsonify({"success": False, "message": "Invalid email or password."}), 401
@@ -237,7 +244,7 @@ def google_login():
 
 
 @app.route('/auth/google/callback', methods=['GET'])
-def google_callback():
+async def google_callback():
     """
     Handles Google's OAuth callback.
 
@@ -266,13 +273,27 @@ def google_callback():
     name = user_info.get("name")
 
     if email:
-        find_or_create_user(email, name, "Google")
-        welcome_message = call_node_server(f"Welcome {name} to Elysian Softech!")
-        return redirect(
-            f"{FRONTEND_URL}/welcome?name={name}&email={email}&welcome_message={requests.utils.quote(welcome_message)}"
+        # Find or create the user and check if the user is new
+        message, is_new_user = find_or_create_user(email, name, "Google")
+        
+        # Generate the OpenAI welcome message only if the user is new
+        welcome_message = (
+            await call_node_server(f"Write a friendly one-sentence welcome message for {name} introducing Elysian Softech (https://elysian-softech.com/).")
+            if is_new_user else
+            await call_node_server(f"Say hi to {name} and share a random programming fact.")
         )
+        
+        return redirect(
+            f"{FRONTEND_URL}/welcome?name={requests.utils.quote(name)}&email={requests.utils.quote(email)}&welcome_message={requests.utils.quote(welcome_message)}"
+        )
+# import jwt
+
+# token = jwt.encode({"name": name, "email": email, "welcome_message": welcome_message}, 'secret_key', algorithm='HS256')
+# redirect_url = f"{FRONTEND_URL}/welcome?token={token}"
+
 
     return jsonify({"success": False, "message": "Failed to fetch user info"}), 400
+
 
 
 @app.route('/auth/facebook', methods=['GET'])
@@ -291,7 +312,7 @@ def facebook_login():
 
 
 @app.route('/auth/facebook/callback', methods=['GET'])
-def facebook_callback():
+async def facebook_callback():
     """
     Handles Facebook's OAuth callback.
 
@@ -321,23 +342,21 @@ def facebook_callback():
     return jsonify({"success": False, "message": "Failed to fetch user info"}), 400
 
 
-def call_node_server(prompt):
+async def call_node_server(prompt):
     """
-    Calls the Node.js server to generate a custom message.
-    
-    Args:
-        prompt (str): The prompt to send to the Node.js server.
-
-    Returns:
-        str: The generated message from the server or a fallback message on failure.
+    Calls the Node.js server asynchronously to generate a custom message.
     """
     try:
-        response = requests.post(NODE_SERVER_URL, json={"prompt": prompt})
-        if response.status_code == 200:
-            return response.json().get("message", "Welcome to Elysian Softech!")
+        async with httpx.AsyncClient() as client:
+            response = await client.post(NODE_SERVER_URL, json={"prompt": prompt}, timeout=10)
+            if response.status_code == 200:
+                return response.json().get("message", "Welcome to Elysian Softech!")
+            else:
+                print("Node server error:", response.text)  # Log error response
     except Exception as e:
         print("Error fetching message from Node server:", e)
     return "Welcome to Elysian Softech!"
+
 
 
 if __name__ == '__main__':
