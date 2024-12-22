@@ -1,25 +1,29 @@
-import React from "react";
-import { FaGoogle, FaFacebook } from "react-icons/fa"; // Import social icons from react-icons
+import React, { useState } from "react";
+import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { getGoogleLoginUrl, getFacebookLoginUrl } from "../services/UserService";
 
 /**
  * SocialButtonsComponent
  * 
- * This component provides buttons for social login options:
- * - Google Login
- * - Facebook Login
+ * Provides buttons for social login with Google and Facebook.
  * 
  * Features:
- * - Includes icons for visual branding.
- * - Hover and click effects for better interactivity.
- * - Flexible design to integrate seamlessly into authentication forms.
+ * - Icons for visual branding (Google and Facebook).
+ * - Interactive hover, press, and opacity effects.
+ * - Redirects users to respective login URLs.
  */
 const SocialButtonsComponent = () => {
+  // Tracks the pressed state for each button
+  const [isGooglePressed, setIsGooglePressed] = useState(false); // Google button press state
+  const [isFacebookPressed, setIsFacebookPressed] = useState(false); // Facebook button press state
+
+  // Handles Google login redirection
   const handleGoogleLogin = () => {
     const googleLoginUrl = getGoogleLoginUrl();
     window.location.href = googleLoginUrl;
   };
 
+  // Handles Facebook login redirection
   const handleFacebookLogin = () => {
     const facebookLoginUrl = getFacebookLoginUrl();
     window.location.href = facebookLoginUrl;
@@ -31,7 +35,7 @@ const SocialButtonsComponent = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        gap: "15px", // Add space between buttons
+        gap: "15px", // Space between buttons
         marginTop: "20px",
       }}
     >
@@ -52,18 +56,17 @@ const SocialButtonsComponent = () => {
           fontSize: "16px", // Font size
           fontWeight: "500", // Medium weight
           gap: "8px", // Space between icon and text
-          transition: "all 0.3s ease", // Smooth transition for hover effect
+          transition: "all 0.3s ease", // Smooth hover and press transitions
+          opacity: isGooglePressed ? 0.3 : 1, // Reduces opacity when pressed
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = "#3B3DBF"; // Change background to blue
-          e.target.style.color = "#fff"; // Change text color to white
+          e.target.style.backgroundColor = "#f0f0f0"; // Light gray background on hover
         }}
         onMouseLeave={(e) => {
           e.target.style.backgroundColor = "#fff"; // Revert to white background
-          e.target.style.color = "#3B3DBF"; // Revert to blue text
         }}
-        onMouseDown={(e) => (e.target.style.transform = "scale(0.98)")} // Scale down on click
-        onMouseUp={(e) => (e.target.style.transform = "scale(1)")} // Scale back to normal
+        onMouseDown={() => setIsGooglePressed(true)} // Set pressed state
+        onMouseUp={() => setIsGooglePressed(false)} // Reset pressed state
       >
         <FaGoogle size={18} /> {/* Google Icon */}
         Google
@@ -86,18 +89,17 @@ const SocialButtonsComponent = () => {
           fontSize: "16px", // Font size
           fontWeight: "500", // Medium weight
           gap: "8px", // Space between icon and text
-          transition: "all 0.3s ease", // Smooth transition for hover effect
+          transition: "all 0.3s ease", // Smooth hover and press transitions
+          opacity: isFacebookPressed ? 0.3 : 1, // Reduces opacity when pressed
         }}
         onMouseEnter={(e) => {
-          e.target.style.backgroundColor = "#3B3DBF"; // Change background to blue
-          e.target.style.color = "#fff"; // Change text color to white
+          e.target.style.backgroundColor = "#f0f0f0"; // Light gray background on hover
         }}
         onMouseLeave={(e) => {
           e.target.style.backgroundColor = "#fff"; // Revert to white background
-          e.target.style.color = "#3B3DBF"; // Revert to blue text
         }}
-        onMouseDown={(e) => (e.target.style.transform = "scale(0.98)")} // Scale down on click
-        onMouseUp={(e) => (e.target.style.transform = "scale(1)")} // Scale back to normal
+        onMouseDown={() => setIsFacebookPressed(true)} // Set pressed state
+        onMouseUp={() => setIsFacebookPressed(false)} // Reset pressed state
       >
         <FaFacebook size={18} /> {/* Facebook Icon */}
         Facebook
