@@ -1,8 +1,8 @@
 import axios from "axios";
 
 // Base URL of your backend
-const API_BASE_URL = "http://127.0.0.1:5000";
-
+const API_BASE_URL = "https://registration-server-hdawevcsavg0bvbx.israelcentral-01.azurewebsites.net";
+//const API_BASE_URL = "http://127.0.0.1:5000"
 /**
  * Login Function
  * Sends user credentials to the backend for authentication.
@@ -14,7 +14,7 @@ const API_BASE_URL = "http://127.0.0.1:5000";
  */
 export const login = async (email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, { email, password });
+    const response = await axios.post(`${API_BASE_URL}/user/login`, { email, password });
     return response.data; // Return the data received from the backend
   } catch (error) {
     throw error.response ? error.response.data : { message: "Network error" }; // Handle API or network errors
@@ -33,7 +33,7 @@ export const login = async (email, password) => {
  */
 export const register = async (email, password, name) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, { email, password, name });
+    const response = await axios.post(`${API_BASE_URL}/user/register`, { email, password, name });
     return response.data; // Return the backend response
   } catch (error) {
     throw error.response ? error.response.data : { message: "Network error" }; // Handle API or network errors
@@ -72,7 +72,7 @@ export const getFacebookLoginUrl = () => {
  */
 export const changePassword = async (email, currentPassword, newPassword) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/change-password`, {
+    const response = await axios.post(`${API_BASE_URL}/user/change-password`, {
       email,
       current_password: currentPassword,
       new_password: newPassword,

@@ -5,21 +5,23 @@ import ToastUtils from "../utils/ToastUtils"; // Utility for toast notifications
 /**
  * WelcomePage
  * 
- * This page greets the user after successful login or registration.
+ * This page displays a personalized welcome message to the user based on the data received
+ * via the navigation state or URL query parameters.
+ * 
  * Features:
- * - Extracts user details (name, email, and welcome message) from URL query parameters or navigation state.
- * - Displays a welcome toast notification only once when the page loads.
- * - Provides a clean and centered layout for the welcome message.
+ * - Extracts user data from either `location.state` or URL query parameters.
+ * - Displays a toast notification to welcome the user.
+ * - Ensures that the toast notification is displayed only once using `useRef`.
  */
 const WelcomePage = () => {
-  const location = useLocation(); // React Router hook for accessing the current location
-  const toastShownRef = useRef(false); // Ref to ensure the toast is shown only once
+  const location = useLocation(); // Access URL and navigation state
+  const toastDisplayedRef = useRef(false); // Ref to track toast display status
 
   /**
-   * Helper function to parse query parameters from the URL.
+   * Extracts query parameters from the URL.
    * 
    * @param {string} search - The query string from the URL.
-   * @returns {Object} Extracted query parameters: name, email, and welcome_message.
+   * @returns {Object} An object containing `name`, `email`, and `welcome_message` fields.
    */
   const getQueryParams = (search) => {
     const params = new URLSearchParams(search);
@@ -30,24 +32,50 @@ const WelcomePage = () => {
     };
   };
 
-  // Extract query parameters and fallback to location state if not present
-  const { name: queryName, email: queryEmail, welcome_message: queryWelcomeMessage } = getQueryParams(location.search);
-  const name = queryName || location.state?.name || "User"; // Fallback to "User" if no name is provided
-  const email = queryEmail || location.state?.email || "Unknown"; // Fallback to "Unknown" if no email is provided
+  const stateData = location.state; // Data from location.state
+  const queryData = getQueryParams(location.search); // Data from query params
 
-  // Welcome message with a fallback message
-  const welcomeMessage = queryWelcomeMessage || `Hi ${name}, Welcome to the platform!`;
+  const { name, email, welcome_message } = stateData || queryData;
 
-  useEffect(() => {
-    // Display the welcome toast only once
-    if (!toastShownRef.current) {
-      ToastUtils.success(welcomeMessage, {
-        autoClose: 10000, // Toast will auto-close after 10 seconds
-        icon: "🎉", // Add a celebratory icon
+  /**
+   * Displays a toast notification for data from `location.state`.
+   * Ensures the toast is displayed only once.
+   * 
+   * @param {string} message - The welcome message to display.
+   */
+  const displayStateToast = (message) => {
+    if (!toastDisplayedRef.current) {
+      ToastUtils.success(decodeURIComponent(message), {
+        autoClose: 8000,
+        icon: "🎉",
       });
-      toastShownRef.current = true; // Mark the toast as shown
+      toastDisplayedRef.current = true; // Mark the toast as displayed
     }
-  }, []); // Empty dependency array ensures this effect runs only on the first render
+  };
+
+  /**
+   * Displays a toast notification for data from query parameters.
+   * 
+   * @param {string} message - The welcome message to display.
+   */
+  const displayQueryToast = (message) => {
+    ToastUtils.success(decodeURIComponent(message), {
+      autoClose: 8000,
+      icon: "🎉",
+    });
+    toastDisplayedRef.current = true; // Mark the toast as displayed
+  };
+
+  // Display the correct toast notification based on data source
+  useEffect(() => {
+    if (welcome_message) {
+      if (stateData) {
+        displayStateToast(welcome_message);
+      } else if (queryData) {
+        displayQueryToast(welcome_message);
+      }
+    }
+  }, [welcome_message, stateData, queryData]);
 
   return (
     <div
@@ -55,29 +83,30 @@ const WelcomePage = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh", // Full viewport height
-        width: "100vw", // Full viewport width
-        backgroundColor: "#3B3DBF", // Page background color
+        height: "100vh",
+        width: "100vw",
+        backgroundColor: "#3B3DBF",
       }}
     >
-      {/* Card container for the welcome message */}
       <div
         style={{
-          backgroundColor: "#fff", // White card background
-          borderRadius: "15px", // Rounded corners for the card
-          padding: "40px", // Padding for spacing
-          textAlign: "center", // Center-align the text content
-          width: "80%", // Responsive width
-          maxWidth: "400px", // Limit the maximum width
+          backgroundColor: "#fff",
+          borderRadius: "15px",
+          padding: "40px",
+          textAlign: "center",
+          width: "80%",
+          maxWidth: "400px",
         }}
       >
-        {/* Title */}
-        <h1 style={{ fontSize: "2rem", color: "#3B3DBF" }}>Welcome! 🎉</h1>
-        {/* User details */}
-        <div style={{ fontSize: "1rem", color: "#6b6b6b" }}>
-          <h1>Welcome, {name}!</h1>
-          <p>Your email: {email}</p>
-        </div>
+        <h1 style={{ fontSize: "2rem", color: "#3B3DBF" }}>
+          Welcome, {name || "Guest"}! 🎉
+        </h1>
+        <p style={{ color: "#6b6b6b", fontSize: "1rem" }}>
+          Enjoy your experience with us!
+        </p>
+        <p style={{ color: "#6b6b6b", fontSize: "0.9rem" }}>
+          Your email: {email || "Not provided"}
+        </p>
       </div>
     </div>
   );

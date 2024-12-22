@@ -58,10 +58,10 @@ const LoginPage = () => {
       const response = await login(email, password);
 
       if (response.success) {
-        const { name, email: userEmail } = response.data; // Extract user data from response
-        navigate("/welcome", { state: { message: response.message, name, email: userEmail } }); // Navigate to welcome page
+        const { name, email, welcome_message } = response; 
+        navigate("/welcome", { state: { welcome_message, name, email } }); 
       } else {
-        ToastUtils.error(response.message || "Login failed. Please try again."); // Error notification
+        ToastUtils.error(response.message || "Login failed. Please try again.");
       }
     } catch (err) {
       ToastUtils.error(err.message || "Something went wrong."); // Network or unexpected error

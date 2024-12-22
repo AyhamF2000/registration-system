@@ -71,12 +71,10 @@ const RegisterPage = () => {
       const response = await register(email, password, name);
 
       if (response.success) {
-        const { message, name, email, welcome_message } = response;
+        const { name, email, welcome_message } = response;
 
         // Navigate to the welcome page with query params and state
-        navigate(`/welcome?welcome_message=${encodeURIComponent(welcome_message)}`, {
-          state: { message, name, email, welcome_message },
-        });
+        navigate("/welcome", {state: { welcome_message,name, email},});
       } else {
         ToastUtils.error(response.message || "Registration failed!"); // Notify user of failure
       }
