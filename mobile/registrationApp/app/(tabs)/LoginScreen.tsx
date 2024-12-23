@@ -6,55 +6,83 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
-import { useRouter } from 'expo-router'; // Import useRouter for navigation
-import { login } from '../../services/UserService';
+import { useRouter } from 'expo-router'; // For navigation
+import { login } from '../../services/UserService'; // Backend API service
 
-const LoginScreen = () => {
-  const router = useRouter(); // useRouter instead of navigation prop
+/**
+ * LoginScreen
+ *
+ * A user authentication screen for logging in.
+ * Features:
+ * - Email and password inputs with visibility toggle for password.
+ * - Toast notifications for success and error feedback.
+ * - Navigation to registration and welcome screens.
+ */
+const LoginScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isLoginPressed, setIsLoginPressed] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
+  /**
+   * Handles user login.
+   * - Validates inputs.
+   * - Sends credentials to the backend.
+   * - Displays success or error messages via Toast.
+   */
   const handleLogin = async () => {
+    Keyboard.dismiss();
+
+    // Validation
     if (!email || !password) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: 'Please enter both email and password.',
+        text2: 'Please fill in both email and password fields.',
       });
       return;
     }
 
     try {
       const response = await login(email, password);
+
       if (response.success) {
         Toast.show({
           type: 'success',
-          text1: 'Success',
-          text2: response.message,
+          text1: 'Welcome!',
+          text2: response.message || 'Login successful!',
         });
-        router.push('/WelcomeScreen'); // Navigate to the Welcome screen
+
+        const { name, email: userEmail, welcome_message } = response;
+        router.push({
+          pathname: '/WelcomeScreen',
+          params: { welcome_message, name, email: userEmail },
+        });
       } else {
         Toast.show({
           type: 'error',
           text1: 'Login Failed',
-          text2: response.message,
+          text2: response.message || 'Login failed. Please try again.',
         });
       }
-    } catch (error: any) {
+    } catch (err: any) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.message || 'An unexpected error occurred.',
+        text2: err.message || 'Something went wrong.',
       });
     }
   };
 
   return (
     <View style={styles.container}>
+      {/* Logo */}
       <View style={styles.logoContainer}>
         <Image
           source={require('../../assets/logo.png')}
@@ -62,8 +90,17 @@ const LoginScreen = () => {
           resizeMode="contain"
         />
       </View>
+
+      {/* Title */}
       <Text style={styles.title}>Log in</Text>
-      <View style={styles.inputContainer}>
+
+      {/* Email Input */}
+      <View
+        style={[
+          styles.inputContainer,
+          focusedInput === 'email' ? styles.inputFocused : null,
+        ]}
+      >
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -71,10 +108,19 @@ const LoginScreen = () => {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
+          onFocus={() => setFocusedInput('email')}
+          onBlur={() => setFocusedInput(null)}
         />
         <Icon name="mail-outline" size={20} color="#A9A9A9" style={styles.inputIcon} />
       </View>
-      <View style={styles.inputContainer}>
+
+      {/* Password Input */}
+      <View
+        style={[
+          styles.inputContainer,
+          focusedInput === 'password' ? styles.inputFocused : null,
+        ]}
+      >
         <TextInput
           style={styles.input}
           placeholder="Password"
@@ -82,25 +128,50 @@ const LoginScreen = () => {
           secureTextEntry={!isPasswordVisible}
           value={password}
           onChangeText={setPassword}
+          onFocus={() => setFocusedInput('password')}
+          onBlur={() => setFocusedInput(null)}
         />
         <TouchableOpacity
           onPress={() => setIsPasswordVisible(!isPasswordVisible)}
           style={styles.inputIcon}
         >
-          <Icon name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'} size={20} color="#A9A9A9" />
+          <Icon
+            name={isPasswordVisible ? 'eye-outline' : 'eye-off-outline'}
+            size={20}
+            color="#A9A9A9"
+          />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.forgotPasswordButton}>
+
+      {/* Forgot Password */}
+      <TouchableOpacity 
+        style={styles.forgotPasswordButton}
+        onPress={() => router.push('/ForgotPasswordScreen')}
+        >
         <Text style={styles.forgotPasswordText}>Forgot password?</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+
+      {/* Login Button */}
+      <TouchableOpacity
+        style={[
+          styles.loginButton,
+          isLoginPressed ? styles.loginButtonPressed : null,
+        ]}
+        onPressIn={() => setIsLoginPressed(true)}
+        onPressOut={() => setIsLoginPressed(false)}
+        onPress={handleLogin}
+      >
         <Text style={styles.loginButtonText}>Log in</Text>
       </TouchableOpacity>
+
+      {/* Divider */}
       <View style={styles.dividerContainer}>
         <View style={styles.divider} />
         <Text style={styles.dividerText}>Or</Text>
         <View style={styles.divider} />
       </View>
+
+      {/* Social Buttons */}
       <View style={styles.socialButtonsContainer}>
         <TouchableOpacity style={styles.socialButton}>
           <Icon name="logo-google" size={20} color="#6B6BFF" style={styles.socialIcon} />
@@ -111,16 +182,25 @@ const LoginScreen = () => {
           <Text style={styles.socialButtonText}>Facebook</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Register Section */}
       <View style={styles.registerContainer}>
         <Text style={styles.registerText}>Have no account yet?</Text>
-        <TouchableOpacity onPress={() => router.push('/RegisterScreen')}>
-          <Text style={styles.registerLink}>Register</Text>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={() => router.push('/RegisterScreen')}
+        >
+          <Text style={styles.registerButtonText}>Register</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Toast Notifications */}
       <Toast />
     </View>
   );
 };
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -153,6 +233,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     width: '100%',
   },
+  inputFocused: {
+    borderColor: '#6B6BFF',
+  },
   input: {
     flex: 1,
     height: 40,
@@ -170,12 +253,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loginButton: {
-    backgroundColor: '#B3B3E6',
+    backgroundColor: '#6B6BFF',
     paddingVertical: 12,
     borderRadius: 20,
     width: '100%',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  loginButtonPressed: {
+    opacity: 0.7,
   },
   loginButtonText: {
     color: '#FFFFFF',
@@ -221,17 +307,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   registerContainer: {
-    flexDirection: 'row',
     marginTop: 20,
+    alignItems: 'center',
+    width: '100%',
   },
   registerText: {
     color: '#A9A9A9',
-    marginRight: 5,
+    marginBottom: 10,
   },
-  registerLink: {
+  registerButton: {
+    alignItems: 'center', // Center children vertically
+    justifyContent: 'center', // Center children horizontally
+    borderWidth: 1,
+    borderColor: '#6B6BFF',
+    borderRadius: 20,
+    paddingVertical: 10, // Add vertical padding for height
+    width: '100%', // Ensure full width of parent container
+  },
+  registerButtonText: {
     color: '#6B6BFF',
+    fontSize: 14,
     fontWeight: '600',
+    textAlign: 'center', // Center text within its container
   },
+  
 });
-
-export default LoginScreen;
